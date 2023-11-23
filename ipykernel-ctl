@@ -1,0 +1,102 @@
+#!/usr/bin/env sh
+
+# Author: Yiannis Charalambous
+# Descreption: Simple script for managing IPyKernels.
+
+HELP='ipykernel-ctl: Automatically deploy and manage IPyKernel instances.
+IPyKernel allows to run Python environments in Jupyter Lab and Notebook.
+Deploy a kernel while inside of an environment, to use that environment
+in Jupyter Lab and Notebook. Note that IPyKernel and Jupyter Lab should
+be installed on your user Python environment (only for data redundancy
+reasons).
+
+Author: Yiannis Charalambous
+
+Usage: ipy-kernel-ctl [command]
+
+Commands:
+--list, --ls:   List the kernels currently deployed.
+--create, -c:   Create a new kernel.
+--delete, -d:   Delete the kernel associated with the current directory.
+                Accepts 1 parameter which can be the name of the kernel
+                to delete, instead of assuming the one in the current
+                directory.
+'
+
+KERNEL_DIR="$HOME/.local/share/jupyter/kernels"
+# The format at which ipykernels are named is the same as for pipenv.
+# https://github.com/pypa/pipenv/issues/796
+DIR_NAME="$(basename $(pwd))"
+DIR_HASH="$(echo -n $(pwd) | md5sum | awk '{print($1)}')"
+IPYKERNEL_NAME="$DIR_NAME-$DIR_HASH"
+
+create_ipykernel()
+{
+  if [ -d "$KERNEL_DIR/$IPYKERNEL_NAME" ]; then
+    echo "There already is a kernel for $IPYKERNEL_NAME"
+    return
+  fi
+  python -m ipykernel install --user --name="$IPYKERNEL_NAME"
+}
+
+VALID_ARGS=$(getopt -o hcd --long help,create,delete,list,ls,list-verbose,lsv -- "$@")
+if [[ $? -ne 0 ]]; then
+    exit 1;
+fi
+
+eval set -- "$VALID_ARGS"
+while [ : ]; do
+  case "$1" in
+    -h | --help)
+      echo "$HELP"
+      exit 0
+      ;;
+    -c | --create)
+      echo "Creating ipykernel for directory $IPYKERNEL_NAME"
+      create_ipykernel
+      shift
+      ;;
+    -d | --delete)
+      if [ -n "$3" ]; then
+        echo "Deleting ipykernel $3"
+        rm -r "$KERNEL_DIR/$3"
+
+        # Shift: --, and finally the arg
+        shift 2
+      elif [ -d "$KERNEL_DIR/$IPYKERNEL_NAME" ]; then
+        echo "Deleting ipykernel associated with current directory: $IPYKERNEL_NAME"
+        rm -r "$KERNEL_DIR/$IPYKERNEL_NAME"
+      else
+        echo "There is no ipykernel to delete."
+        exit 1
+      fi
+      # Shift: --delete or -d.
+      shift
+      ;;
+    --list | --ls)
+      find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec basename {} \;
+      exit 0
+      shift
+      ;;
+    --list-verbose | --lsv)
+      find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec echo {} \;
+      exit 0
+      shift
+      ;;
+    :)
+      echo "Option requires an argument."
+      exit 1
+      ;;
+    ?)
+      echo "Invalid command option."
+      exit 1
+      ;;
+    --)
+      shift; 
+      break 
+      ;;
+    *)
+      exit 1;
+ esac
+done
+
