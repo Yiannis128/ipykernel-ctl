@@ -3,24 +3,27 @@
 # Author: Yiannis Charalambous
 # Descreption: Simple script for managing IPyKernels.
 
-HELP='ipykernel-ctl: Automatically deploy and manage IPyKernel instances.
+HELP='Usage: ipy-kernel-ctl [command]
+
+Author: Yiannis Charalambous
+
+Automatically deploy and manage IPyKernel instances.
 IPyKernel allows to run Python environments in Jupyter Lab and Notebook.
 Deploy a kernel while inside of an environment, to use that environment
 in Jupyter Lab and Notebook. Note that IPyKernel and Jupyter Lab should
 be installed on your user Python environment (only for data redundancy
 reasons).
 
-Author: Yiannis Charalambous
-
-Usage: ipy-kernel-ctl [command]
-
 Commands:
---list, --ls:   List the kernels currently deployed.
---create, -c:   Create a new kernel.
---delete, -d:   Delete the kernel associated with the current directory.
-                Accepts 1 parameter which can be the name of the kernel
-                to delete, instead of assuming the one in the current
-                directory.
+
+Default Command:  Outputs the name of the kernel associated with the working
+                  directory. If there is no match, will output an error.
+--list, --ls:     List the kernels currently deployed.
+--create, -c:     Create a new kernel.
+--delete, -d:     Delete the kernel associated with the current directory.
+                  Accepts 1 parameter which can be the name of the kernel
+                  to delete, instead of assuming the one in the current
+                  directory.
 '
 
 KERNEL_DIR="$HOME/.local/share/jupyter/kernels"
@@ -37,6 +40,11 @@ create_ipykernel()
     return
   fi
   python -m ipykernel install --user --name="$IPYKERNEL_NAME"
+}
+
+list_kernels()
+{
+  find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec basename {} \;
 }
 
 VALID_ARGS=$(getopt -o hcd --long help,create,delete,list,ls,list-verbose,lsv -- "$@")
@@ -74,7 +82,7 @@ while [ : ]; do
       shift
       ;;
     --list | --ls)
-      find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec basename {} \;
+      list_kernels
       exit 0
       shift
       ;;
@@ -93,6 +101,21 @@ while [ : ]; do
       ;;
     --)
       shift; 
+      # Check if no extra args provided.
+      if [ "$#" = 0 ]; then
+        # Check if kernel is initialized for the current directory, if it is,
+        # then output its name.
+        if [ "$(list_kernels | grep $IPYKERNEL_NAME)" ]; then 
+          echo "$IPYKERNEL_NAME"
+        else
+          echo "No kernel associated with directory."
+          exit 1
+        fi
+      else
+        # This triggers when the command is invoked with invalid text as arguments.
+        echo "Invalid arguments... Run command with -h to get help information."
+        exit 1
+      fi
       break 
       ;;
     *)
