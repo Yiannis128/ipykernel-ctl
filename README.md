@@ -46,3 +46,7 @@ You can also pass it a kernel name to delete a specific one:
 ```sh
 ipykernel-ctl --delete mykernel-abcd
 ```
+
+# Contributions
+
+Please create issues to request any features that you would like added. You can then fork the repository, make additions, and create a pull request. Alternatively, you can wait for it to be implemented _at some point_ :)
