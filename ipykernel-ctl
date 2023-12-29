@@ -10,9 +10,11 @@ Author: Yiannis Charalambous
 Automatically deploy and manage IPyKernel instances.
 IPyKernel allows to run Python environments in Jupyter Lab and Notebook.
 Deploy a kernel while inside of an environment, to use that environment
-in Jupyter Lab and Notebook. Note that IPyKernel and Jupyter Lab should
-be installed on your user Python environment (only for data redundancy
-reasons).
+in Jupyter Lab and Notebook.
+
+Jupyter Lab should be installed on your user Python environment (only for
+data redundancy reasons). IPyKernel needs to be installed in your pipenv
+in order for the command to be located.
 
 Commands:
 
@@ -48,7 +50,7 @@ list_kernels()
 }
 
 VALID_ARGS=$(getopt -o hcd --long help,create,delete,list,ls,list-verbose,lsv -- "$@")
-if [[ $? -ne 0 ]]; then
+if [ "$?" -ne "0" ]; then
     exit 1;
 fi
 
