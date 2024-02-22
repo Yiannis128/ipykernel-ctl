@@ -126,7 +126,7 @@ while true; do
       if [ "$#" = 0 ]; then
         # Check if kernel is initialized for the current directory, if it is,
         # then output its name.
-        if [ "$(list_kernels | grep $IPYKERNEL_NAME)" ]; then 
+        if [[ $(list_kernels | grep "$IPYKERNEL_NAME") ]]; then 
           echo "$IPYKERNEL_NAME"
         else
           echo "No kernel associated with directory. Call with --help to see options."
