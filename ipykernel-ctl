@@ -108,8 +108,8 @@ while true; do
           exit 1
         fi
       done
-      echo "$(pwd)/$0"
-      wget "$UPDATE_URL" -O "$(pwd)/$0"
+      echo "Updating: $0"
+      wget "$UPDATE_URL" -O "${0:?}"
       exit 0
       ;;
     :)
