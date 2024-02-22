@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Author: Yiannis Charalambous
 # Descreption: Simple script for managing IPyKernels.
@@ -26,14 +26,21 @@ Default Command:  Outputs the name of the kernel associated with the working
                   Accepts 1 parameter which can be the name of the kernel
                   to delete, instead of assuming the one in the current
                   directory.
+
+--list-verbose, --lsv   Lists the locations of all the ipykernels installed
+                  on the system.
+--upgrade         Downloads and installs the latest version of this script.
+                  Replaces the currently installed version.
 '
 
 KERNEL_DIR="$HOME/.local/share/jupyter/kernels"
 # The format at which ipykernels are named is the same as for pipenv.
 # https://github.com/pypa/pipenv/issues/796
-DIR_NAME="$(basename $(pwd))"
-DIR_HASH="$(echo -n $(pwd) | md5sum | awk '{print($1)}')"
+DIR_NAME=$(basename "$(pwd)")
+DIR_HASH=$(echo -n "$(pwd)" | md5sum | awk '{print($1)}')
 IPYKERNEL_NAME="$DIR_NAME-$DIR_HASH"
+
+UPDATE_URL="https://raw.githubusercontent.com/Yiannis128/ipykernel-ctl/master/ipykernel-ctl"
 
 create_ipykernel()
 {
@@ -49,7 +56,7 @@ list_kernels()
   find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec basename {} \;
 }
 
-VALID_ARGS=$(getopt -o hcd --long help,create,delete,list,ls,list-verbose,lsv -- "$@")
+VALID_ARGS=$(getopt -o hcd --long help,create,delete,list,ls,list-verbose,lsv,upgrade -- "$@")
 if [ "$?" -ne "0" ]; then
     exit 1;
 fi
@@ -67,15 +74,16 @@ while [ : ]; do
       shift
       ;;
     -d | --delete)
-      if [ -n "$3" ]; then
+      if [ -v "3" ]; then
         echo "Deleting ipykernel $3"
-        rm -r "$KERNEL_DIR/$3"
+        rm -r "${KERNEL_DIR:?}/$3"
 
         # Shift: --, and finally the arg
         shift 2
       elif [ -d "$KERNEL_DIR/$IPYKERNEL_NAME" ]; then
+        # Deletes the iPyKenrel of the current directory
         echo "Deleting ipykernel associated with current directory: $IPYKERNEL_NAME"
-        rm -r "$KERNEL_DIR/$IPYKERNEL_NAME"
+        rm -r "${KERNEL_DIR:?}/${IPYKERNEL_NAME:?}"
       else
         echo "There is no ipykernel to delete."
         exit 1
@@ -86,12 +94,23 @@ while [ : ]; do
     --list | --ls)
       list_kernels
       exit 0
-      shift
       ;;
     --list-verbose | --lsv)
       find "$KERNEL_DIR" -mindepth 1 -type d ! -name '.*' -exec echo {} \;
       exit 0
-      shift
+      ;;
+    --upgrade)
+      while true; do
+        read -rp "ipykernel-ctl: Update script to the latest version? (y/n) " RESPONSE
+        if [ "$RESPONSE" = "y" ]; then
+          break
+        elif [ "$RESPONSE" = "n" ]; then
+          exit 1
+        fi
+      done
+      echo "$(pwd)/$0"
+      wget "$UPDATE_URL" -O "$(pwd)/$0"
+      exit 0
       ;;
     :)
       echo "Option requires an argument."
@@ -107,7 +126,7 @@ while [ : ]; do
       if [ "$#" = 0 ]; then
         # Check if kernel is initialized for the current directory, if it is,
         # then output its name.
-        if [ "$(list_kernels | grep $IPYKERNEL_NAME)" ]; then 
+        if [ "$(list_kernels | grep -q $IPYKERNEL_NAME)" ]; then 
           echo "$IPYKERNEL_NAME"
         else
           echo "No kernel associated with directory. Call with --help to see options."
