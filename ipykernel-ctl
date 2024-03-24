@@ -37,6 +37,9 @@ KERNEL_DIR="$HOME/.local/share/jupyter/kernels"
 # The format at which ipykernels are named is the same as for pipenv.
 # https://github.com/pypa/pipenv/issues/796
 DIR_NAME=$(basename "$(pwd)")
+DIR_NAME="${DIR_NAME// /_}"
+echo "$DIR_NAME"
+exit
 DIR_HASH=$(echo -n "$(pwd)" | md5sum | awk '{print($1)}')
 IPYKERNEL_NAME="$DIR_NAME-$DIR_HASH"
 
