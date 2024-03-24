@@ -39,7 +39,7 @@ KERNEL_DIR="$HOME/.local/share/jupyter/kernels"
 # The format at which ipykernels are named is the same as for pipenv.
 # https://github.com/pypa/pipenv/issues/796
 DIR_NAME=$(basename "$(pwd)")
-DIR_NAME="${DIR_NAME// /_}"
+DIR_NAME=$(echo "${DIR_NAME// /_}" | awk '{ print tolower($0) }')
 DIR_HASH=$(echo -n "$(pwd)" | md5sum | awk '{print($1)}')
 IPYKERNEL_NAME="$DIR_NAME-$DIR_HASH"
 
@@ -131,7 +131,7 @@ while true; do
         # then output its name. Use case insensitive search since ipykernel will
         # save the name in lowercase.
         if [[ $(list_kernels | grep -i "$IPYKERNEL_NAME") ]]; then 
-          echo "$IPYKERNEL_NAME" | awk '{ print tolower($0) }'
+          echo "$IPYKERNEL_NAME"
         else
           echo "No kernel associated with directory. Call with --help to see options."
           exit 1
