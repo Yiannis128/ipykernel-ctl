@@ -102,7 +102,7 @@ while true; do
       ;;
     --upgrade)
       while true; do
-        read -rp "ipykernel-ctl: Update script to the latest version? (y/n) " RESPONSE
+        read -rp "ipykernel-ctl: Update script to the latest version? The upgraded version will replace the current file (y/n) " RESPONSE
         if [ "$RESPONSE" = "y" ]; then
           break
         elif [ "$RESPONSE" = "n" ]; then
