@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -eE -o functrace
+
 # Author: Yiannis Charalambous
 # Descreption: Simple script for managing IPyKernels.
 
