@@ -131,7 +131,7 @@ while true; do
         # then output its name. Use case insensitive search since ipykernel will
         # save the name in lowercase.
         if [[ $(list_kernels | grep -i "$IPYKERNEL_NAME") ]]; then 
-          echo "$IPYKERNEL_NAME"
+          echo "$IPYKERNEL_NAME" | awk '{ print tolower($0) }'
         else
           echo "No kernel associated with directory. Call with --help to see options."
           exit 1
